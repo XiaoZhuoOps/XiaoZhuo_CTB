@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaozhuo.ctbsb.modules.user.mapper.UserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xiaozhuo.ctbsb.modules.user.model.User">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="password" property="password" />
+        <result column="email" property="email" />
+        <result column="phone" property="phone" />
+        <result column="activate_Code" property="activateCode" />
+        <result column="status" property="status" />
+        <result column="avatar" property="avatar" />
+        <result column="credits" property="credits" />
+        <result column="created_date" property="createdDate" />
+    </resultMap>
+
+</mapper>
