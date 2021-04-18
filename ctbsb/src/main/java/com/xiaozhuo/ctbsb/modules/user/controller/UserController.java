@@ -121,13 +121,12 @@ public class UserController {
 
     @ApiOperation(value = "用户登录")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
-
     public CommonResult<String> login(@RequestParam("name") String name,
                                       @RequestParam("password") String password,
                                       @RequestParam("imageCode") String imageCode,
                                       HttpServletRequest request){
-        /*String code = (String)request.getSession().getAttribute("imageCode");
-        if(imageCode.equals("") || !imageCode.equals(code)) return CommonResult.failed("验证码错误");*/
+        String code = (String)request.getSession().getAttribute("imageCode");
+        if(imageCode.equals("") || !imageCode.equals(code)) return CommonResult.failed("验证码错误");
         String token = userService.login(name, password);
         return CommonResult.success(token,"登录成功");
     }

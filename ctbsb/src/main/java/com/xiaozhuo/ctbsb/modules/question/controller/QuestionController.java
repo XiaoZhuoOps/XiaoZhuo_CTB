@@ -4,6 +4,7 @@ package com.xiaozhuo.ctbsb.modules.question.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaozhuo.ctbsb.common.Api.CommonPage;
 import com.xiaozhuo.ctbsb.common.Api.CommonResult;
+import com.xiaozhuo.ctbsb.common.exception.Asserts;
 import com.xiaozhuo.ctbsb.common.utils.OcrUtil;
 import com.xiaozhuo.ctbsb.domain.QAL;
 import com.xiaozhuo.ctbsb.modules.answer.model.Answer;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
+import sun.jvm.hotspot.utilities.Assert;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
@@ -131,6 +133,11 @@ public class QuestionController {
                                                     @RequestParam("pageSize") int pageSize){
         String text = OcrUtil.BaiduOcr(fileSavePath + virtualFilePath);
         Page<Question> questionPage = questionService.listQuestionByKeyword(text, pageNum, pageSize);
+        try{
+            if(!new File(fileSavePath + virtualFilePath).delete()) Asserts.fail("图片上传失败, 请重试");
+        }catch (SecurityException e){
+            e.printStackTrace();
+        }
         return CommonPage.restPage(questionPage);
     }
 
