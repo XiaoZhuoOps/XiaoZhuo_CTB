@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * MyBatis配置类
  */
 @Configuration
-@EnableTransactionManagement
 @MapperScan({"com.xiaozhuo.ctbsb.modules.*.mapper"})
 public class MyBatisConfig {
     @Bean

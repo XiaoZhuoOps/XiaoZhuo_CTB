@@ -15,5 +15,5 @@ import java.util.List;
  * @since 2021-02-17
  */
 public interface TypeMapper extends BaseMapper<Type> {
-    List<Type> selectByQuestionId(@Param("questionId") int questionId);
+    List<Type> selectByQuestionId(@Param("questionId") int questionId, @Param("userId") int userId);
 }

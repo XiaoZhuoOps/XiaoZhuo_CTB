@@ -11,7 +11,8 @@
 
 
     <select id="selectByQuestionId" resultMap="BaseResultMap">
-        select a.* from knowledge a inner join question_knowledge b on b.question_id = #{questionId}
+        select a.* from knowledge a inner join question_knowledge b
+        on b.question_id = #{questionId}
         and a.id = b.knowledge_id;
     </select>
 

@@ -10,7 +10,9 @@
 
 
     <select id="selectByQuestionId" resultMap="BaseResultMap">
-        select a.* from type a inner join question_type b on b.question_id = #{questionId}
+        select a.* from type a inner join question_type b
+        on b.question_id = #{questionId}
+        and b.user_id = #{userId}
         and a.id = b.type_id;
     </select>
 

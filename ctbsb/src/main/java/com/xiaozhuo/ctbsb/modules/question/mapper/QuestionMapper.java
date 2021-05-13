@@ -21,4 +21,5 @@ import java.util.List;
 @Component(value = "QuestionMapper")
 public interface QuestionMapper extends BaseMapper<Question> {
     Page<Question> selectByKw(Page<?> page, @Param("kw") String kw);
+    List<Question> selectAll();
 }

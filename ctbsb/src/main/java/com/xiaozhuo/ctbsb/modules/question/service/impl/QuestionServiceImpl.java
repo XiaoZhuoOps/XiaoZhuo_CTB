@@ -37,6 +37,7 @@ import java.util.List;
  * @since 2021-02-16
  */
 @Service
+@Transactional(rollbackFor = ApiException.class)
 public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> implements QuestionService {
 
     @Autowired
@@ -110,50 +111,56 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     }
 
     @Override
-    @Transactional(rollbackFor = ApiException.class)
     public boolean addLabels(int questionId, int userId, int[] typeIds, int difficultyId) {
-        deleteLabels(questionId, userId);
-        for (int typeId : typeIds) {
-            QuestionType questionType = new QuestionType();
-            questionType.setUserId(userId);
-            questionType.setTypeId(typeId);
-            questionType.setQuestionId(questionId);
-            questionTypeMapper.insert(questionType);
+        try{
+            deleteLabels(questionId, userId);
+            for (int typeId : typeIds) {
+                QuestionType questionType = new QuestionType();
+                questionType.setUserId(userId);
+                questionType.setTypeId(typeId);
+                questionType.setQuestionId(questionId);
+                questionTypeMapper.insert(questionType);
+            }
+            QuestionDifficulty questionDifficulty = new QuestionDifficulty();
+            questionDifficulty.setUserId(userId);
+            questionDifficulty.setDifficultyId(difficultyId);
+            questionDifficulty.setQuestionId(questionId);
+            questionDifficultyMapper.insert(questionDifficulty);
+        }catch (Exception e){
+            Asserts.fail("添加失败");
         }
-        QuestionDifficulty questionDifficulty = new QuestionDifficulty();
-        questionDifficulty.setUserId(userId);
-        questionDifficulty.setDifficultyId(difficultyId);
-        questionDifficulty.setQuestionId(questionId);
-        questionDifficultyMapper.insert(questionDifficulty);
         return true;
     }
 
     @Override
     public boolean deleteLabels(int questionId, int userId) {
-        int delete1 = questionTypeMapper.delete(new QueryWrapper<QuestionType>().lambda().eq(QuestionType::getQuestionId, questionId)
+        try{
+            int delete1 = questionTypeMapper.delete(new QueryWrapper<QuestionType>().lambda().eq(QuestionType::getQuestionId, questionId)
                 .eq(QuestionType::getUserId, userId));
-        int delete2 = questionDifficultyMapper.delete(new QueryWrapper<QuestionDifficulty>().lambda().eq(QuestionDifficulty::getQuestionId, questionId)
-                .eq(QuestionDifficulty::getUserId, userId));
-        return (0<delete1) && (0<delete2);
+            int delete2 = questionDifficultyMapper.delete(new QueryWrapper<QuestionDifficulty>().lambda().eq(QuestionDifficulty::getQuestionId, questionId)
+                    .eq(QuestionDifficulty::getUserId, userId));
+        }catch (Exception e){
+            Asserts.fail("删除失败");
+        }
+        return true;
     }
-
     //AQL
     @Override
-    public QAL findQALById(int questionId) {
+    public QAL findQALById(int questionId, int userId) {
         Question question = getBaseMapper().selectById(questionId);
         List<Answer> answers = answerMapper.selectList(new QueryWrapper<Answer>().lambda().eq(Answer::getQuestionId, questionId));
-        List<Difficulty> difficulties = difficultyMapper.selectByQuestionId(questionId);
-        Difficulty difficulty = (difficulties.size()!=0)? difficulties.get(0):null;
         List<Knowledge> knowledges = knowledgeMapper.selectByQuestionId(questionId);
-        List<Type> types = typeMapper.selectByQuestionId(questionId);
+        List<Difficulty> difficulties = difficultyMapper.selectByQuestionId(questionId, userId);
+        Difficulty difficulty = (difficulties.size()!=0)? difficulties.get(0):null;
+        List<Type> types = typeMapper.selectByQuestionId(questionId, userId);
         return new QAL(question, answers, difficulty, knowledges, types);
     }
 
     @Override
-    public Page<QAL> listQALByIds(List<Integer> ids, int pageNum, int pageSize) {
+    public Page<QAL> listQALByIds(List<Integer> ids, int userId, int pageNum, int pageSize) {
         ArrayList<QAL> qals = new ArrayList<>(ids.size());
         for(Integer id:ids){
-            qals.add(findQALById(id));
+            qals.add(findQALById(id, userId));
         }
         //list -> page
         Page<QAL> qalPage = new Page<>(pageNum, pageSize);
@@ -161,10 +168,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         return qalPage;
     }
 
-    @Transactional(rollbackFor = ApiException.class)
     @Override
     public boolean addQuestionToFavorite(int userId, int questionId, int[] favoriteIds, int[] typeIds, int difficultyId, String text) {
-        try {
+        try{
             //删除原有的favoriteQuestion
             List<Favorite> favorites = favoriteMapper.selectFavoriteByQuestion(userId, questionId);
             for(Favorite f:favorites){
@@ -173,41 +179,25 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
             }
             //调用类内部的其他方法会执行事务吗？
             addLabels(questionId, userId, typeIds, difficultyId);
-            //
             for(int favoriteId:favoriteIds) {
                 FavoriteQuestion favoriteQuestion = new FavoriteQuestion();
                 favoriteQuestion.setFavoriteId(favoriteId);
                 favoriteQuestion.setQuestionId(questionId);
                 favoriteQuestionMapper.insert(favoriteQuestion);
-                //
                 Note note = new Note();
                 note.setText(text);
                 note.setFavoriteId(favoriteId);
                 note.setQuestionId(questionId);
                 noteMapper.insert(note);
             }
-        }
-        catch (Exception e){
-            throw new ApiException("添加错误");
+        }catch (Exception e){
+            Asserts.fail("添加失败");
         }
         return true;
     }
 
     @Override
-    @Transactional(rollbackFor = ApiException.class)
-    public boolean copyQuestionToFavorite(int[] qIds, int[] fIds) {
-      try{
-          for(int qId:qIds){
-              for (int fId:fIds){
-                   FavoriteQuestion fq = new FavoriteQuestion();
-                   fq.setQuestionId(qId);
-                   fq.setFavoriteId(fId);
-                   favoriteQuestionMapper.insert(fq);
-           }
-       }
-      }catch (Exception e){
-          throw new ApiException("复制错误");
-      }
-      return true;
+    public List<Question> listQuestion() {
+        return getBaseMapper().selectAll();
     }
 }

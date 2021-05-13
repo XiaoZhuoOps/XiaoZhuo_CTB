@@ -2,12 +2,14 @@ package com.xiaozhuo.ctbsb.modules.favorite.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.xiaozhuo.ctbsb.common.exception.ApiException;
 import com.xiaozhuo.ctbsb.common.exception.Asserts;
 import com.xiaozhuo.ctbsb.modules.favorite.model.Favorite;
 import com.xiaozhuo.ctbsb.modules.favorite.mapper.FavoriteMapper;
 import com.xiaozhuo.ctbsb.modules.favorite.service.FavoriteService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -21,19 +23,39 @@ import java.util.List;
  * @since 2021-02-25
  */
 @Service
+@Transactional(rollbackFor = ApiException.class)
 public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> implements FavoriteService {
     @Override
     public Favorite addFavorite(String name, int ownerId) {
-        Favorite favorite1 = getBaseMapper().selectOne(new QueryWrapper<Favorite>().lambda().eq(Favorite::getName, name).eq(Favorite::getOwnerId, ownerId));
-        if(favorite1!=null) Asserts.fail("名称已存在");
-        //
+        if(getBaseMapper().selectOne(
+                new QueryWrapper<Favorite>().lambda()
+                .eq(Favorite::getName, name)
+                .eq(Favorite::getOwnerId, ownerId))
+                !=null){
+            Asserts.fail("名称已存在");
+        }
         Favorite favorite = new Favorite();
         favorite.setName(name);
         favorite.setOwnerId(ownerId);
         favorite.setCreatedDate(new Date());
-        int insert = getBaseMapper().insert(favorite);
+        int insert = 0;
+        try{
+            insert = getBaseMapper().insert(favorite);
+        }catch (Exception e){
+            Asserts.fail("添加错误");
+        }
         if(0 < insert) return favorite;
         else return null;
+    }
+
+    @Override
+    //判断用户是否有权限操作错题本
+    public boolean checkFavAuth(int userId, int[] favoriteIds){
+        for(int favoriteId:favoriteIds) {
+            Favorite byId = findById(favoriteId);
+            if(null == byId || byId.getOwnerId()!=userId) return false;
+        }
+        return true;
     }
 
     @Override

@@ -13,4 +13,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface NoteService extends IService<Note> {
     boolean add(String text, int favoriteId, int questionId);
+    Note find(int favoriteId, int questionId);
 }

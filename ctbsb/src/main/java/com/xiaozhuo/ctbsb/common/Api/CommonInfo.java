@@ -10,9 +10,7 @@ import lombok.Setter;
 @Setter
 public class CommonInfo {
     long code;
-    String msg;
-
-    public CommonInfo(long code, String msg){
+    String msg;    public CommonInfo(long code, String msg){
         this.code = code;
         this.msg = msg;
     }

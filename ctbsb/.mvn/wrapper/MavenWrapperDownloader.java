@@ -17,9 +17,7 @@
 import java.net.*;
 import java.io.*;
 import java.nio.channels.*;
-import java.util.Properties;
-
-public class MavenWrapperDownloader {
+import java.util.Properties;    public class MavenWrapperDownloader {
 
     private static final String WRAPPER_VERSION = "0.5.6";
     /**
@@ -44,9 +42,7 @@ public class MavenWrapperDownloader {
     /**
      * Name of the property which should be used to override the default download url for the wrapper.
      */
-    private static final String PROPERTY_NAME_WRAPPER_URL = "wrapperUrl";
-
-    public static void main(String args[]) {
+    private static final String PROPERTY_NAME_WRAPPER_URL = "wrapperUrl";    public static void main(String args[]) {
         System.out.println("- Downloader started");
         File baseDirectory = new File(args[0]);
         System.out.println("- Using base directory: " + baseDirectory.getAbsolutePath());

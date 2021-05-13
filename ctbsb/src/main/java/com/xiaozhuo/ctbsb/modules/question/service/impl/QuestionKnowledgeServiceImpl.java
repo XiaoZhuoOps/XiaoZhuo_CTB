@@ -1,12 +1,15 @@
 package com.xiaozhuo.ctbsb.modules.question.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.xiaozhuo.ctbsb.common.exception.ApiException;
+import com.xiaozhuo.ctbsb.common.exception.Asserts;
 import com.xiaozhuo.ctbsb.modules.question.model.Question;
 import com.xiaozhuo.ctbsb.modules.question.model.QuestionKnowledge;
 import com.xiaozhuo.ctbsb.modules.question.mapper.QuestionKnowledgeMapper;
 import com.xiaozhuo.ctbsb.modules.question.service.QuestionKnowledgeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.List;
  * @since 2021-02-17
  */
 @Service
+@Transactional(rollbackFor = ApiException.class)
 public class QuestionKnowledgeServiceImpl extends ServiceImpl<QuestionKnowledgeMapper, QuestionKnowledge> implements QuestionKnowledgeService {
     @Override
     public boolean addKnowledgeLabel(int questionId, int[] knowledgeIds) {
@@ -30,7 +34,13 @@ public class QuestionKnowledgeServiceImpl extends ServiceImpl<QuestionKnowledgeM
             questionKnowledge.setKnowledgeId(knowledgeId);
             questionKnowledges.add(questionKnowledge);
         }
-        return saveBatch(questionKnowledges, knowledgeIds.length);
+        boolean save = true;
+        try{
+            save = saveBatch(questionKnowledges, knowledgeIds.length);
+        }catch (Exception e){
+            Asserts.fail("添加失败");
+        }
+        return save;
     }
 
     @Override

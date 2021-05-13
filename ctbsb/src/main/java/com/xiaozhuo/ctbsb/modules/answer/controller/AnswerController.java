@@ -42,7 +42,6 @@ public class AnswerController {
     @UserLoginToken
     @ApiOperation(value = "上传图片")
     @RequestMapping(value = "/uploadImg", method = RequestMethod.POST)
-
     public CommonResult<String> uploadImg(@RequestParam("virtualFilePath") MultipartFile uploadFile,
                                           HttpServletRequest request){
 
@@ -71,7 +70,6 @@ public class AnswerController {
     @UserLoginToken
     @ApiOperation(value = "上传答案")
     @RequestMapping(value = "/uploadAnswer/{questionId}", method = RequestMethod.POST)
-
     public CommonResult<Answer> uploadQuestion(@PathVariable("questionId") int questionId,
                                                  @RequestParam("name") String name,
                                                  @RequestParam("text") String text,

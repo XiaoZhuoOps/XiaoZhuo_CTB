@@ -26,13 +26,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/question/knowledge")
 public class KnowledgeController {
+
     @Autowired
     KnowledgeService knowledgeService;
 
     @UserLoginToken
     @ApiOperation(value = "获取所有知识点")
     @RequestMapping(value = "/list", method = RequestMethod.GET)
-
     public CommonResult<List<Knowledge>> list(){
         List<Knowledge> list = knowledgeService.list();
         return CommonResult.success(list,"返回成功");

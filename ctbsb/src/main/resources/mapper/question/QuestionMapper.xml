@@ -17,4 +17,8 @@
         WHERE MATCH (text)
         AGAINST (#{kw})
     </select>
+
+    <select id="selectAll" parameterType="String" resultMap="BaseResultMap">
+        SELECT * FROM question
+    </select>
 </mapper>

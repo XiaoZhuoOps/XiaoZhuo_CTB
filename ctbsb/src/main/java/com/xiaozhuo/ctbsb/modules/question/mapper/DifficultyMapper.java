@@ -16,5 +16,5 @@ import java.util.List;
  * @since 2021-02-17
  */
 public interface DifficultyMapper extends BaseMapper<Difficulty> {
-    List<Difficulty> selectByQuestionId(@Param("questionId") int questionId);
+    List<Difficulty> selectByQuestionId(@Param("questionId") int questionId, @Param("userId") int userId);
 }

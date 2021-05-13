@@ -2,17 +2,13 @@ package com.xiaozhuo.ctbsb.modules.question.controller;
 
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.xiaozhuo.ctbsb.common.Api.CommonPage;
 import com.xiaozhuo.ctbsb.common.Api.CommonResult;
 import com.xiaozhuo.ctbsb.common.exception.Asserts;
 import com.xiaozhuo.ctbsb.common.utils.OcrUtil;
 import com.xiaozhuo.ctbsb.domain.QAL;
 import com.xiaozhuo.ctbsb.modules.answer.model.Answer;
 import com.xiaozhuo.ctbsb.modules.answer.service.AnswerService;
-import com.xiaozhuo.ctbsb.modules.question.model.Difficulty;
-import com.xiaozhuo.ctbsb.modules.question.model.Knowledge;
 import com.xiaozhuo.ctbsb.modules.question.model.Question;
-import com.xiaozhuo.ctbsb.modules.question.model.Type;
 import com.xiaozhuo.ctbsb.modules.question.service.*;
 import com.xiaozhuo.ctbsb.security.annotation.UserLoginToken;
 import com.xiaozhuo.ctbsb.security.util.JwtTokenUtil;
@@ -22,8 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
-import sun.jvm.hotspot.utilities.Assert;
-
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.Date;
@@ -64,6 +58,9 @@ public class QuestionController {
 
     @Autowired
     KnowledgeService knowledgeService;
+
+    @Autowired
+    ElasticsearchService elasticsearchService;
 
     @Autowired
     JwtTokenUtil jwtTokenUtil;
@@ -112,9 +109,10 @@ public class QuestionController {
             }
             else return CommonResult.failed("请输入题目内容或上传图片");
         }
-
         int userId = (int) request.getAttribute("userId");
         Question question =  questionService.uploadQuestion(name,text,userId,virtualFilePath);
+        //同步到ES
+        elasticsearchService.saveQuestion(question);
         //上传标签
         boolean flag = questionKnowledgeService.addKnowledgeLabel(question.getId(), knowledgeIds);
         if(flag){
@@ -128,27 +126,29 @@ public class QuestionController {
     @UserLoginToken
     @ApiOperation(value = "拍照搜题")
     @RequestMapping(value = "/listQuestionByPhoto", method = RequestMethod.GET)
-    public CommonPage<Question> listQuestionByPhoto(@RequestParam("virtualFilePath") String virtualFilePath,
-                                                    @RequestParam("pageNum") int pageNum,
-                                                    @RequestParam("pageSize") int pageSize){
+    public org.springframework.data.domain.Page<Question> listQuestionByPhoto(@RequestParam("virtualFilePath") String virtualFilePath,
+                                                                              @RequestParam("pageNum") int pageNum,
+                                                                              @RequestParam("pageSize") int pageSize){
         String text = OcrUtil.BaiduOcr(fileSavePath + virtualFilePath);
-        Page<Question> questionPage = questionService.listQuestionByKeyword(text, pageNum, pageSize);
+        //Page<Question> questionPage = questionService.listQuestionByKeyword(text, pageNum, pageSize);
         try{
             if(!new File(fileSavePath + virtualFilePath).delete()) Asserts.fail("图片上传失败, 请重试");
         }catch (SecurityException e){
-            e.printStackTrace();
+            Asserts.fail("图片上传失败 请重试");
         }
-        return CommonPage.restPage(questionPage);
+        return elasticsearchService.searchQuestion(text, pageNum, pageSize);
+        /*return CommonPage.restPage(questionService.listQuestionByKeyword(text, pageNum, pageSize));*/
     }
 
     @UserLoginToken
     @ApiOperation(value = "关键字查询")
     @RequestMapping(value = "/listQuestionByKeyword", method = RequestMethod.GET)
-    public CommonPage<Question> listQuestionByKeyword(@RequestParam("keyword") String keyword,
-                                                      @RequestParam("pageNum") int pageNum,
-                                                      @RequestParam("pageSize") int pageSize){
-        Page<Question> questionPage = questionService.listQuestionByKeyword(keyword, pageNum, pageSize);
-        return CommonPage.restPage(questionPage);
+    public org.springframework.data.domain.Page<Question> listQuestionByKeyword(@RequestParam("keyword") String keyword,
+                                                                                @RequestParam("pageNum") int pageNum,
+                                                                                @RequestParam("pageSize") int pageSize){
+        //Page<Question> questionPage = questionService.listQuestionByKeyword(keyword, pageNum, pageSize);
+        //return CommonPage.restPage(questionPage);
+        return elasticsearchService.searchQuestion(keyword, pageNum, pageSize);
     }
 
     @UserLoginToken
@@ -171,15 +171,26 @@ public class QuestionController {
     @UserLoginToken
     @ApiOperation(value = "根据题目id查询题目")
     @RequestMapping(value = "/list/{id}", method = RequestMethod.GET)
-    public CommonResult<QAL> list(@PathVariable("id") int id){
+    public CommonResult<QAL> list(@PathVariable("id") int id,
+                                  HttpServletRequest request){
+        int userId = (int) request.getAttribute("userId");
         Question questionById = questionService.findQuestionById(id);
         if(questionById == null) return CommonResult.failed("问题不存在");
         int questionId = questionById.getId();
-        List<Answer> answers = answerService.listByQuestionId(questionId);
-        QAL qal = questionService.findQALById(questionId);
+        QAL qal = questionService.findQALById(questionId, userId);
         return CommonResult.success(qal, "返回成功");
     }
 
-
+    //临时api
+    @UserLoginToken
+    @ApiOperation(value = "上传mysql内题目到es")
+    @RequestMapping(value = "/uploadToEs", method = RequestMethod.GET)
+    public CommonResult<String> uploadToEs() {
+        List<Question> questions = questionService.listQuestion();
+        for(Question q : questions){
+            elasticsearchService.saveQuestion(q);
+        }
+        return CommonResult.success("上传成功");
+    }
 }
 

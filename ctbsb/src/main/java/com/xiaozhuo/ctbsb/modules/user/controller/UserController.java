@@ -35,6 +35,7 @@ import java.util.Random;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+
     @Autowired
     UserService userService;
 
@@ -46,7 +47,6 @@ public class UserController {
 
     @ApiOperation(value = "用户注册")
     @RequestMapping(value = "/register", method = RequestMethod.POST)
-
     public CommonResult<User> register(@RequestBody User userParam) {
         String str = userService.register(userParam);
         return CommonResult.success(null, str);
@@ -54,7 +54,6 @@ public class UserController {
 
     @ApiOperation(value = "邮箱激活")
     @RequestMapping(value = "/active", method = RequestMethod.GET)
-
     public CommonResult<User> activate(@RequestParam("emailAddress") String emailAddress,
                                          @RequestParam("activateCode") String activateCode
                                          ){
@@ -67,6 +66,7 @@ public class UserController {
     public void createImageCode(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ImageCode imageCode = createImageCode();
+        //todo
         request.getSession().setAttribute("imageCode", imageCode.getCode());
         ImageIO.write(imageCode.getImage(), "jpeg", response.getOutputStream());
     }
@@ -101,9 +101,7 @@ public class UserController {
             graphics.setColor(new Color(20 + random.nextInt(110), 20 + random.nextInt(110), 20 + random.nextInt(110)));
             graphics.drawString(rand, 13 * i + 6, 16);
         }
-
         graphics.dispose();
-
         return new ImageCode(image, sRand.toString(), expireIn);
     }
     private Color getRandColor(int fc, int bc) {
@@ -153,7 +151,6 @@ public class UserController {
     @UserLoginToken
     @ApiOperation(value = "添加头像")
     @RequestMapping(value = "/addAvatar", method = RequestMethod.POST)
-
     public CommonResult<String> addAvatar(HttpServletRequest request, @RequestParam("file") MultipartFile uploadFile) {
 
         int userId = (int) request.getAttribute("userId");

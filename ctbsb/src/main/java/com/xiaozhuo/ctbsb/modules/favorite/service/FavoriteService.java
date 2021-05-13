@@ -22,5 +22,5 @@ public interface FavoriteService extends IService<Favorite> {
     List<Favorite> listFavoritesByQuestionId(int userId, int questionId);
     boolean delete(int id);
     int count(int userId);
-
+    boolean checkFavAuth(int userId, int[] favoriteIds);
 }

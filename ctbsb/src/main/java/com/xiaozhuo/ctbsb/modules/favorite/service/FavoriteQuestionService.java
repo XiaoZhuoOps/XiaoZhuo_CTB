@@ -21,4 +21,5 @@ public interface FavoriteQuestionService extends IService<FavoriteQuestion> {
     boolean addFavoriteQuestion(int favoriteId, int questionId);
     boolean delete(int favoriteId, int questionId);
     int count(int favoriteId);
+    boolean copyQuestionToFavorite(int[] qIds, int[] fIds);
 }

@@ -24,12 +24,12 @@ public interface QuestionService extends IService<Question> {
     Page<Question> listQuestionByKeyword(String keyword, int pageNum, int pageSize);
     Page<Question> listQuestionByIds(List<Integer> ids, int pageNum, int pageSize);
     Question findQuestionById(int id);
-    //multi-table dao
+    List<Question> listQuestion();
+    //多表查询
     boolean addLabels(int questionId, int userId, int[] typeIds, int difficultyId);
     boolean deleteLabels(int questionId, int userId);
-    QAL findQALById(int questionId);
-    Page<QAL> listQALByIds(List<Integer> ids, int pageNum, int pageSize);
+    QAL findQALById(int questionId, int userId);
+    Page<QAL> listQALByIds(List<Integer> ids, int userId, int pageNum, int pageSize);
     boolean addQuestionToFavorite(int userId, int questionId, int[] favoriteIds ,int[] typeIds,int difficultyId, String text);
-    boolean copyQuestionToFavorite(int[] qIds, int[] fIds);
 }
 

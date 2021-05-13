@@ -60,7 +60,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             redisService.lPush(userParam.getEmail(), activate_code, 3600);
             redisService.lPush(userParam.getEmail(), userParam, 3600);
             try {
-                emailUtil.sendActivateMail(userParam.getEmail(), activate_code);
+                emailUtil.sendActivateMail("mail.html", userParam.getEmail(), activate_code);
             } catch (Exception e) {
                 Asserts.fail("邮件发送错误");
             }

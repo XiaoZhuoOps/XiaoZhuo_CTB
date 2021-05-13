@@ -10,7 +10,9 @@
 
 
     <select id="selectByQuestionId" resultMap="BaseResultMap">
-        select a.* from difficulty a inner join question_difficulty b on b.question_id = #{questionId}
+        select a.* from difficulty a inner join question_difficulty b
+        on b.question_id = #{questionId}
+        and b.user_id = #{userId}
         and a.id = b.difficulty_id;
     </select>
 
